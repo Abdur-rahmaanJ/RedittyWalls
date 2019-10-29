@@ -1,7 +1,7 @@
 
 import sys
 
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.QtWidgets import QLabel, QStatusBar, QToolBar
 from PyQt5.QtWidgets import QPushButton, QProgressBar
 from PyQt5.QtWidgets import QVBoxLayout, QGridLayout
@@ -45,11 +45,8 @@ def pic_files():
     DIR = 'pics/'
     return [name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))]
 
-
 def is_connected():
     try:
-        # connect to the host -- tells us if the host is actually
-        # reachable
         socket.create_connection(("www.google.com", 80))
         return True
     except OSError:
@@ -66,11 +63,11 @@ class Window(QMainWindow):
         self._createMenu()
         self._createToolBar()
         self._createStatusBar()
+
         try:
             os.mkdir('pics')
         except FileExistsError:
             pass
-
 
         self.layout = QGridLayout()
         self.window = QWidget()
@@ -94,18 +91,27 @@ class Window(QMainWindow):
         self.prev_but.clicked.connect(self.prev_pic)
         prev_but_icon = QPixmap("ctrl_icons/previous.png");
         self.prev_but.setIcon(QIcon(prev_but_icon))
+        
         self.next_but = QPushButton()
         self.next_but.clicked.connect(self.next_pic)
         next_but_icon = QPixmap("ctrl_icons/next-1.png");
         self.next_but.setIcon(QIcon(next_but_icon))
+        
         self.rand_but = QPushButton()
         self.rand_but.clicked.connect(self.choose_randpic)
         rand_but_icon = QPixmap("ctrl_icons/refresh-1.png");
         self.rand_but.setIcon(QIcon(rand_but_icon))
+
+        self.delete_img_but = QPushButton()
+        self.delete_img_but.clicked.connect(self.confirm_img_deletion)
+        delete_img_but_icon = QPixmap("ctrl_icons/cancel.png");
+        self.delete_img_but.setIcon(QIcon(delete_img_but_icon))
+        
         self.showofflinepic_label = QLabel()
         self.showofflinepic_label.setAlignment(Qt.AlignCenter)
         self.showofflinepic_label.setFixedSize(300, 300)
         self.choose_randpic()
+        
         self.chooseoffline_but = QPushButton('Change via Offline Pic')
         self.chooseoffline_but.clicked.connect(self.change_offline_pic)
 
@@ -118,7 +124,8 @@ class Window(QMainWindow):
         self.layout.addWidget(self.showofflinepic_label, 4, 1, 1, 2)
         self.layout.addWidget(self.next_but, 4, 3)
         self.layout.addWidget(self.rand_but, 5, 1, 1, 2)
-        self.layout.addWidget(self.chooseoffline_but, 6, 1, 1, 2)
+        self.layout.addWidget(self.delete_img_but, 6, 1, 1, 2)
+        self.layout.addWidget(self.chooseoffline_but, 7, 1, 1, 2)
 
         self.window.setLayout(self.layout)
         self.setWindowIcon(QIcon('icon.jpg'))
@@ -175,6 +182,18 @@ class Window(QMainWindow):
         self.c_status.setText(text)
         QApplication.processEvents()
 
+    def confirm_img_deletion(self):
+        buttonReply = QMessageBox.question(self, 'Delete confirmation', "Do you really want to delete this picture?", 
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if buttonReply == QMessageBox.Yes:
+            print('Yes clicked.')
+            # remove image
+            os.remove('pics/{}'.format(self.chosen_offlinepic))
+            # update display
+            self.choose_randpic()
+        else:
+            print('No clicked.')
+
     def wallpaper_change(self, offline_pic=None):
         try:
             if offline_pic:
@@ -214,7 +233,7 @@ class Window(QMainWindow):
                 chosen_img_name = '{}.{}'.format(chosen_img[::-8], get_ext(chosen_img))
                 chosen_img_path = 'pics/{}'.format(chosen_img_name)
 
-                self.progress_bar.setValue(75)
+                self.set_progress(75)
                 self.set_step_status('fetching image ...')
                 download_file(chosen_img, chosen_img_path)
 
@@ -223,11 +242,14 @@ class Window(QMainWindow):
                 self.chosen_offlinepic = chosen_img_name
                 self.offline_pics.append(chosen_img_name)
                 self.display_pic(self.chosen_offlinepic)
-                self.progress_bar.setValue(90)
+                self.set_progress(90)
                 self.set_step_status('setting image ...')
                 ctypes.windll.user32.SystemParametersInfoW(20, 0, pic_path , 0)
         except Exception as e:
             print('error', e)
+
+    def set_progress(self, value):
+        self.progress_bar.setValue(value)
 
 
 if __name__ == '__main__':

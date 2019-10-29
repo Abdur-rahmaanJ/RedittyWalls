@@ -1,1 +1,1 @@
-py38 main.py
+python main.py
