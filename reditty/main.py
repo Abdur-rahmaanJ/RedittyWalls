@@ -22,7 +22,7 @@ sub_reddits = [
                 'wallpaper', 'wallpapers', 'wallpaperdump', 'wallpaperengine', 
                 'ImaginaryLandscapes', 'EarthPorn', 'food', 'foodphotography', 
                 'LandscapePhotography', 'Minecraft', 'blender', 'skyporn'
-            ]
+           ]
 
 def check_ext(img_url):
     for ext in img_exts:
@@ -66,6 +66,11 @@ class Window(QMainWindow):
         self._createMenu()
         self._createToolBar()
         self._createStatusBar()
+        try:
+            os.mkdir('pics')
+        except FileExistsError:
+            pass
+
 
         self.layout = QGridLayout()
         self.window = QWidget()
@@ -148,8 +153,9 @@ class Window(QMainWindow):
 
     def choose_randpic(self):
         self.offline_pics = deque(pic_files())
-        self.chosen_offlinepic = random.choice(self.offline_pics)
-        self.display_pic(self.chosen_offlinepic)
+        if self.offline_pics:
+            self.chosen_offlinepic = random.choice(self.offline_pics)
+            self.display_pic(self.chosen_offlinepic)
         
 
     def prev_pic(self):
