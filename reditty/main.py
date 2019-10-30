@@ -152,11 +152,6 @@ class Window(QMainWindow):
         self.wallpaper_change()
         self.progress_bar.setValue(100)
         self.c_status.setText('completed!')
-        self.img_count(self.num_files())
-    
-    #Added image count and presented it to user
-    def img_count(self):
-        print(num_files())
 
     def display_pic(self, pic_name):
         self.showofflinepic_pixmap = QPixmap('pics/{}'.format(pic_name))
