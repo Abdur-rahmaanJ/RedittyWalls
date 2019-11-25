@@ -12,6 +12,8 @@ from PyQt5.QtCore import Qt
 
 from PyQt5.QtGui import QIcon, QPixmap
 
+import sip
+
 import socket
 import os, os.path
 import random
@@ -41,6 +43,10 @@ def get_ext(url):
 def num_files():
     DIR = 'pics/'
     return len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
+
+def update_num_files():
+        num = num_files()+1
+        return num
 
 def pic_files():
     DIR = 'pics/'
@@ -86,7 +92,7 @@ class Window(QMainWindow):
             self.pixmap = QPixmap('ctrl_icons/cancel.png')
         self.smaller_pixmap = self.pixmap.scaled(32, 32, QtCore.Qt.KeepAspectRatio, QtCore.Qt.FastTransformation)
         self.connect_label.setPixmap(self.smaller_pixmap)
-        self.stats = QLabel('Internet On: {}<br>Offline Images: {}'.format(has_internet, num_files()))
+        self.stats = QLabel('Internet On: {}<br>Offline Images: {}'.format(is_connected(), num_files()))
 
         self.prev_but = QPushButton()
         self.prev_but.clicked.connect(self.prev_pic)
@@ -246,6 +252,11 @@ class Window(QMainWindow):
                 self.set_progress(90)
                 self.set_step_status('setting image ...')
                 ctypes.windll.user32.SystemParametersInfoW(20, 0, pic_path , 0)
+                self.layout.removeWidget(self.stats)
+                sip.delete(self.stats)
+                self.stats = None
+                self.stats = QLabel('Internet On: {}<br>Offline Images: {}'.format(is_connected(), update_num_files()))
+                self.layout.addWidget(self.stats, 0, 1)
         except Exception as e:
             print('error', e)
 
