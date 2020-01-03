@@ -1,4 +1,4 @@
-# @Contributor: Aaron Guyett
+
 
 import sys
 
@@ -20,10 +20,11 @@ import random
 from collections import deque
 import requests
 import ctypes
+import platform
 
-sub_reddits = [ 
-                'wallpaper', 'wallpapers', 'wallpaperdump', 'wallpaperengine', 
-                'ImaginaryLandscapes', 'EarthPorn', 'food', 'foodphotography', 
+sub_reddits = [
+                'wallpaper', 'wallpapers', 'wallpaperdump', 'wallpaperengine',
+                'ImaginaryLandscapes', 'EarthPorn', 'food', 'foodphotography',
                 'LandscapePhotography', 'Minecraft', 'blender', 'skyporn'
            ]
 
@@ -33,12 +34,15 @@ def check_ext(img_url):
             return True
     return False
 
+
 def download_file(file_url, path):
     r = requests.get(file_url, allow_redirects=True)
     open(path, 'wb').write(r.content)
 
+
 def get_ext(url):
     return url.split('.')[-1]
+
 
 def num_files():
     DIR = 'pics/'
@@ -48,9 +52,11 @@ def update_num_files():
         num = num_files()+1
         return num
 
+
 def pic_files():
     DIR = 'pics/'
     return [name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))]
+
 
 def is_connected():
     try:
@@ -60,13 +66,20 @@ def is_connected():
         pass
     return False
 
+
+def set_bg(pic_path):
+    if os.uname()[1] == 'raspberrypi':
+        os.system('pcmanfm --set-wallpaper {}'.format(pic_path))
+    elif platform.system() == 'Windows':
+        ctypes.windll.user32.SystemParametersInfoW(20, 0, pic_path , 0)
+    
+    
 class Window(QMainWindow):
     """Main Window."""
     def __init__(self, parent=None):
         """Initializer."""
         super().__init__(parent)
         self.setWindowTitle('WallPaperChanger')
-        self.setCentralWidget(QLabel("I'm the Central Widget"))
         self._createMenu()
         self._createToolBar()
         self._createStatusBar()
@@ -190,7 +203,7 @@ class Window(QMainWindow):
         QApplication.processEvents()
 
     def confirm_img_deletion(self):
-        buttonReply = QMessageBox.question(self, 'Delete confirmation', "Do you really want to delete this picture?", 
+        buttonReply = QMessageBox.question(self, 'Delete confirmation', "Do you really want to delete this picture?",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if buttonReply == QMessageBox.Yes:
             print('Yes clicked.')
@@ -229,7 +242,7 @@ class Window(QMainWindow):
                     jsondata = req.json()
                     # print(jsondata)
                     posts = jsondata['data']['children']
-                    current_urls = [post['data']['url'] for post in posts if (post['data']['url']).split('.')[-1] in 
+                    current_urls = [post['data']['url'] for post in posts if (post['data']['url']).split('.')[-1] in
                     ['jpg', 'jpeg', 'png'] and 'imgur' not in post['data']['url']]
                     img_urls += current_urls
                 print('found', img_urls)
@@ -251,7 +264,7 @@ class Window(QMainWindow):
                 self.display_pic(self.chosen_offlinepic)
                 self.set_progress(90)
                 self.set_step_status('setting image ...')
-                ctypes.windll.user32.SystemParametersInfoW(20, 0, pic_path , 0)
+                set_bg(pic_path)
                 self.layout.removeWidget(self.stats)
                 sip.delete(self.stats)
                 self.stats = None
