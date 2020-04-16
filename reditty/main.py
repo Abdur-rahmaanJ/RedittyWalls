@@ -1,6 +1,7 @@
 
 
 import sys
+import math
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.QtWidgets import QLabel, QStatusBar, QToolBar
@@ -237,6 +238,8 @@ class Window(QMainWindow):
 
                 self.set_step_status('gathering images ...')
                 for i,sub_reddit in enumerate(sub_reddits):
+                    perc = ((i+1)/len(sub_reddits)) * 50
+                    self.set_progress(math.ceil(perc))
                     self.set_step_status('passing over source: {}'.format(i+1))
                     req = requests.get('https://www.reddit.com/r/{}/.json'.format(sub_reddit), headers=headers)
                     jsondata = req.json()
