@@ -22,12 +22,18 @@ from collections import deque
 import requests
 import ctypes
 import platform
+import subprocess
 
 sub_reddits = [
                 'wallpaper', 'wallpapers', 'wallpaperdump', 'wallpaperengine',
                 'ImaginaryLandscapes', 'EarthPorn', 'food', 'foodphotography',
                 'LandscapePhotography', 'Minecraft', 'blender', 'skyporn'
            ]
+SCRIPT = """/usr/bin/osascript<<END
+tell application "Finder"
+set desktop picture to POSIX file "%s"
+end tell
+END"""
 
 def check_ext(img_url):
     for ext in img_exts:
@@ -73,6 +79,10 @@ def set_bg(pic_path):
         os.system('pcmanfm --set-wallpaper {}'.format(pic_path))
     elif platform.system() == 'Windows':
         ctypes.windll.user32.SystemParametersInfoW(20, 0, pic_path , 0)
+    elif platform.system() == "Darwin":
+        subprocess.Popen(SCRIPT%pic_path, shell=True)
+
+    
     
     
 class Window(QMainWindow):
